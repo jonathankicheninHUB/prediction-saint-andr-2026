@@ -130,12 +130,43 @@
                 </div>
             </div>
         </section>
+        
+        <!-- NOUVELLE SECTION - EROSION -->
+        <section class="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl md:text-3xl font-bold text-purple-400 mb-4 border-b-4 border-purple-500 inline-block pb-1">2. Le Modèle Avancé : Intégration de l'Érosion ($\epsilon$)</h2>
+            <p class="text-lg text-gray-200 leading-relaxed mb-4">
+                Pour affiner la prédiction du 1er tour, on formalise un lien entre les élections passées et la dynamique actuelle en introduisant un paramètre d’érosion ($\epsilon$). Ce paramètre modélise la perte de fidélité électorale d’une élection à l’autre, reconnaissant que les votes passés influencent le scrutin actuel, mais que leur effet décroît avec le temps ou les changements locaux.
+            </p>
 
-        <!-- VALIDATION DU MODÈLE -->
+            <h3 class="text-xl font-bold text-purple-300 mt-6 mb-2">Formule Générique avec Érosion</h3>
+            <p class="text-gray-400 mb-4 text-sm italic">
+                Soit $V_i^{t}$ les voix prévues pour le candidat $i$ au tour actuel $t$, $V_i^{t-1}$ les voix obtenues lors de l’élection précédente (ex. 2014), et $P_{i,j}$ la proportion du pool redistribué des listes éliminées.
+            </p>
+
+            <div class="bg-gray-900 p-6 rounded-lg overflow-x-auto text-white font-mono text-lg">
+                $$
+                V_i^{t} = (1-\epsilon) \cdot f(V_i^{t-1}) + \epsilon \cdot \big(V_i^{\text{direct}} + \sum_{j\in \text{listes éliminées}} P_{i,j} \cdot V_j^{\text{direct}}\big)
+                $$
+            </div>
+            
+            <div class="mt-6 space-y-3">
+                <div class="text-sm text-gray-300">
+                    <span class="font-bold text-purple-300">($\epsilon \in [0,1]$) :</span> Paramètre d’érosion, représentant l’influence du passé. Si $\epsilon = 1$, il n'y a pas de lien avec le passé (seul le scrutin courant compte). Si $\epsilon = 0$, il y a fidélité totale au scrutin précédent.
+                </div>
+                <div class="text-sm text-gray-300">
+                    <span class="font-bold text-purple-300">($f(V_i^{t-1})$) :</span> Fonction d’ajustement du vote passé (ex. évolution démographique, tendance du parti).
+                </div>
+                <div class="text-sm text-gray-300">
+                    <span class="font-bold text-purple-300">($V_i^{\text{direct}}$) :</span> Voix “directes” mesurées au 1er tour actuel pour ce candidat.
+                </div>
+            </div>
+        </section>
+
+        <!-- VALIDATION DU MODÈLE (Maintenant Section 3) -->
         <section class="bg-gray-700 rounded-xl shadow-lg p-6 md:p-8">
-            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-2">Validation du Modèle Prédictif</h2>
+            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-2">3. Validation du Modèle Prédictif</h2>
             <p class="text-gray-200 mb-6">
-                Application de la formule : <code class="bg-gray-800 text-white px-2 py-1 rounded text-sm font-mono">V2 = V1 + (Pool × Taux)</code>. Précision remarquable.
+                Application de la formule simplifiée (sans érosion pour la validation historique) : <code class="bg-gray-800 text-white px-2 py-1 rounded text-sm font-mono">V2 = V1 + (Pool × Taux)</code>. Précision remarquable.
             </p>
             <div class="chart-container">
                 <canvas id="validationChart"></canvas>
@@ -168,11 +199,43 @@
             </div>
         </section>
 
-        <!-- PROJECTION 2026 - SECOND TOUR -->
-        <section id="projection2026_second_tour" class="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 border-4 border-amber-500">
-            <h2 class="text-2xl md:text-3xl font-bold text-amber-400 mb-4 border-b-4 border-amber-500 inline-block pb-1">Projection 2nd Tour 2026 (Scénario de Bascule)</h2>
+        <!-- PROJECTION 2026 - PREMIER TOUR (Maintenant Section 4) -->
+        <section id="projection2026_premier_tour" class="bg-gray-700 rounded-xl shadow-lg p-6 md:p-8 border-4 border-cyan-500">
+            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-4 border-b-4 border-cyan-500 inline-block pb-1">4. Projection 1er Tour 2026 (Simulation d'Érosion)</h2>
             <p class="text-lg text-gray-200 leading-relaxed mb-6">
-                Le modèle projette une inversion de la dynamique. La **consolidation de l'opposition** (JMV + Ramassamy + Moutoucomorapoulé + Reports Droite/RN) ferait face à un sortant (Bedier) affaibli par la **fragmentation à gauche** (Fruteau).
+                Ajustez le paramètre d'érosion ($\epsilon$) pour simuler l'impact du passé (2014) par rapport à la dynamique actuelle (Projections 2026).
+            </p>
+
+            <!-- SLIDER INTERACTIF -->
+            <div class="bg-gray-900 p-6 rounded-lg mb-8 shadow-inner">
+                <label for="erosion-slider" class="block text-xl font-bold text-purple-300 mb-3">
+                    Paramètre d'Érosion ($\epsilon$) : <span id="erosion-value" class="text-2xl font-extrabold text-white ml-2">0.50</span>
+                </label>
+                <input type="range" id="erosion-slider" min="0" max="100" value="50" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg">
+                <div class="flex justify-between text-sm text-gray-400 mt-2">
+                    <span>$\epsilon$ = 0 (Fidélité Totale au Passé 2014)</span>
+                    <span>$\epsilon$ = 1 (Seul le Présent Compte)</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="order-2 md:order-1">
+                    <h3 class="text-xl font-bold text-gray-100 mb-4">Répartition des Forces (Ajustée)</h3>
+                    <div class="chart-container">
+                        <canvas id="projection1stTourChart"></canvas>
+                    </div>
+                </div>
+                <div class="order-1 md:order-2 space-y-4" id="projection-details-1st">
+                    <!-- Les résultats projetés seront injectés ici par JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECTION 2026 - SECOND TOUR (Maintenant Section 5) -->
+        <section id="projection2026_second_tour" class="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 border-4 border-amber-500">
+            <h2 class="text-2xl md:text-3xl font-bold text-amber-400 mb-4 border-b-4 border-amber-500 inline-block pb-1">5. Projection 2nd Tour 2026 (Duel Dynamique)</h2>
+            <p class="text-lg text-gray-200 leading-relaxed mb-6">
+                Ce duel est calculé en temps réel en fonction des résultats du 1er tour ajustés par l'érosion ($\epsilon$). Un modèle de report réaliste des voix éliminées est appliqué pour projeter le vainqueur.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -182,52 +245,8 @@
                         <canvas id="projection2ndTourChart"></canvas>
                     </div>
                 </div>
-                <div class="space-y-4">
-                    <div class="bg-blue-900/50 border-l-4 border-blue-700 p-4">
-                        <h4 class="font-bold text-blue-300">Opposition (JMV Consolidé)</h4>
-                        <p class="text-sm text-blue-200">Bénéficie d'une base unifiée dès le 1er tour et de bons reports de la droite.</p>
-                        <div class="text-2xl font-extrabold text-blue-500 mt-2">~13 774 voix</div>
-                    </div>
-                    <div class="bg-cyan-900/50 border-l-4 border-cyan-500 p-4">
-                        <h4 class="font-bold text-cyan-300">Sortant (Bedier)</h4>
-                        <p class="text-sm text-cyan-200">Pénalisé par la dispersion des voix de gauche au 1er tour et un report partiel.</p>
-                        <div class="text-2xl font-extrabold text-cyan-500 mt-2">~13 000 voix</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PROJECTION 2026 - PREMIER TOUR -->
-        <section id="projection2026_premier_tour" class="bg-gray-700 rounded-xl shadow-lg p-6 md:p-8 border-4 border-cyan-500">
-            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-4 border-b-4 border-cyan-500 inline-block pb-1">Projection 1er Tour 2026 (Fragmentation)</h2>
-            <p class="text-lg text-gray-200 leading-relaxed mb-6">
-                Analyse de la quadrangulaire probable qui définit les réserves de voix pour le second tour.
-            </p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div class="order-2 md:order-1">
-                    <h3 class="text-xl font-bold text-gray-100 mb-4">Répartition des Forces</h3>
-                    <div class="chart-container">
-                        <canvas id="projection1stTourChart"></canvas>
-                    </div>
-                </div>
-                <div class="order-1 md:order-2 space-y-4">
-                    <div class="bg-blue-900/50 border-l-4 border-blue-500 p-4">
-                        <h4 class="font-bold text-blue-300">JMV Consolidé : 38%</h4>
-                        <p class="text-sm text-blue-200">Le bloc central d'opposition est le plus haut.</p>
-                    </div>
-                    <div class="bg-cyan-900/50 border-l-4 border-cyan-500 p-4">
-                        <h4 class="font-bold text-cyan-300">Joé Bedier : 27%</h4>
-                        <p class="text-sm text-cyan-200">Le sortant résiste mais ne domine pas.</p>
-                    </div>
-                    <div class="bg-pink-900/50 border-l-4 border-pink-500 p-4">
-                        <h4 class="font-bold text-pink-300">Éric Fruteau : 18%</h4>
-                        <p class="text-sm text-pink-200">L'arbitre du scrutin.</p>
-                    </div>
-                    <div class="bg-red-900/50 border-l-4 border-red-500 p-4">
-                        <h4 class="font-bold text-red-300">L. Virapoullé (RN) : 12%</h4>
-                        <p class="text-sm text-red-200">Le trouble-fête à droite.</p>
-                    </div>
+                <div class="space-y-4" id="projection-details-2nd">
+                    <!-- Les résultats du 2nd tour seront injectés ici par JS -->
                 </div>
             </div>
         </section>
@@ -235,7 +254,7 @@
         <footer class="text-center py-12 space-y-4">
             <h3 class="text-2xl font-bold text-gray-200">Conclusion</h3>
             <p class="max-w-2xl mx-auto text-gray-400">
-                L'élection de 2026 s'annonce comme le miroir inversé de 2020. Là où l'union avait fait la force de Bedier, la désunion à gauche risque de favoriser le retour de l'opposition consolidée.
+                L'élection de 2026 s'annonce comme le miroir inversé de 2020. La capacité du sortant à rallier l'électorat de gauche d'Eric Fruteau sera critique face à un bloc d'opposition fortement consolidé par le vote RN.
             </p>
             <div class="text-xs text-gray-500 mt-8">
                 Généré par Canvas Infographics
@@ -248,6 +267,38 @@
         // Configuration Globale
         const FONT_COLOR = '#e0e0e0';
         const GRID_COLOR = 'rgba(224, 224, 224, 0.1)';
+        
+        // Données du Modèle d'Érosion pour le 1er tour 2026
+        // Base Historique 2014 (V_i^t-1) - Votes réels 2014 pour la tendance
+        const V_2014_BASE = {
+            'JMV Consolidé': 9756,    // JMV 2014
+            'Joé Bedier': 7851,       // Bedier 2014
+            'Eric Fruteau': 6345,     // Fruteau 2014
+            'L. Virapoullé/RN': 3558  // Votes restants pour normalisation
+        };
+        // Base Actuelle Projetée (V_i^direct + Pool) - Initial 2026 projection
+        const V_CURRENT_BASE = {
+            'JMV Consolidé': 9804,
+            'Joé Bedier': 6966,
+            'Eric Fruteau': 4644,
+            'L. Virapoullé/RN': 3096
+        };
+        const TOTAL_VOTES_2026_PROJ = 24510; // Total des votes exprimés projetés (somme des V_CURRENT_BASE)
+
+        // Modèle de Report du 1er au 2nd Tour (Estimation)
+        // Les pourcentages sont: [Vers JMV, Vers Bedier, Abstention]
+        const REPORT_RATES = {
+            'Eric Fruteau': { 'JMV Consolidé': 0.30, 'Joé Bedier': 0.60, 'Abstention': 0.10 },
+            'L. Virapoullé/RN': { 'JMV Consolidé': 0.85, 'Joé Bedier': 0.05, 'Abstention': 0.10 }
+        };
+
+
+        // Initialisation des variables globales des graphiques
+        let projection1stTourChart = null;
+        let projection2ndTourChart = null;
+
+
+        // --- Fonctions d'Utilité Chart.js ---
 
         function wrapLabel(label) {
             if (label.length <= 16) return label;
@@ -276,6 +327,21 @@
                     } else {
                         return label;
                     }
+                },
+                label: function(context) {
+                    let label = context.dataset.label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    if (context.parsed.y !== null) {
+                        label += Math.round(context.parsed.y).toLocaleString('fr-FR') + ' voix';
+                        if (context.dataset.label === 'Projection 2026') {
+                             const total = context.chart.data.datasets[1].data.reduce((a, b) => a + b, 0);
+                             const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                             label += ` (${percentage}%)`;
+                        }
+                    }
+                    return label;
                 }
             }
         };
@@ -289,106 +355,310 @@
             },
             backgroundColor: 'transparent' 
         };
+        
+        // --- Fonction du Modèle d'Érosion (Section 4) ---
 
-        // 1. Demographics Chart
-        const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
-        new Chart(ctxDemo, {
-            type: 'bar',
-            data: {
-                labels: ['2014 (2nd Tour)', '2020 (2nd Tour)'],
-                datasets: [
-                    { label: 'Inscrits (Vivier)', data: [34727, 42680], backgroundColor: '#3b82f6', order: 2, yAxisID: 'y' },
-                    { label: 'Taux d\'Abstention (%)', data: [26.92, 51.94], borderColor: '#f472b6', backgroundColor: '#f472b6', type: 'line', borderWidth: 3, pointRadius: 6, order: 1, yAxisID: 'y1' }
-                ]
-            },
-            options: {
-                ...commonChartOptions,
-                scales: {
-                    x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } },
-                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Nombre d\'Inscrits', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } },
-                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Abstention (%)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { drawOnChartArea: false, color: GRID_COLOR } }
+        function calculate2026Projection(epsilon) {
+            const results = {};
+            const keys = Object.keys(V_CURRENT_BASE);
+            let currentTotal = 0;
+
+            for (const key of keys) {
+                // V_i, 2026 = (1 - epsilon) * V_i, 2014^Base + epsilon * V_i, Actuel^Projeté
+                const projectedVotes = (1 - epsilon) * V_2014_BASE[key] + epsilon * V_CURRENT_BASE[key];
+                results[key] = Math.round(projectedVotes);
+                currentTotal += results[key];
+            }
+
+            // Normaliser pour que le total reste constant (ou proche de l'objectif)
+            const scalingFactor = TOTAL_VOTES_2026_PROJ / currentTotal;
+            for (const key of keys) {
+                results[key] = Math.round(results[key] * scalingFactor);
+            }
+
+            return results;
+        }
+
+        // --- Fonctions de Mise à Jour de l'Interface ---
+
+        function updateProjectionChartAndDetails(epsilon) {
+            const results = calculate2026Projection(epsilon);
+            const dataArray = Object.values(results);
+            const keys = Object.keys(results);
+            
+            // Mise à jour du graphique 1er Tour
+            if (projection1stTourChart) {
+                projection1stTourChart.data.datasets[0].data = dataArray;
+                projection1stTourChart.update();
+            }
+
+            // Mise à jour du panneau de détails 1er Tour
+            const detailsPanel = document.getElementById('projection-details-1st');
+            detailsPanel.innerHTML = '';
+            
+            const colors = ['#3b82f6', '#06b6d4', '#f59e0b', '#dc2626'];
+            let htmlContent = '';
+            
+            keys.forEach((key, index) => {
+                const votes = results[key];
+                const percentage = ((votes / TOTAL_VOTES_2026_PROJ) * 100).toFixed(1);
+                
+                let colorClass = '';
+                let hexColor = colors[index];
+                if (key.includes('JMV')) colorClass = 'blue';
+                else if (key.includes('Bedier')) colorClass = 'cyan';
+                else if (key.includes('Fruteau')) colorClass = 'amber'; // Utiliser amber pour Fruteau
+                else if (key.includes('Virapoullé/RN')) colorClass = 'red'; // Utiliser red pour RN
+
+                htmlContent += `
+                    <div class="bg-${colorClass}-900/50 border-l-4 border-${colorClass}-500 p-4">
+                        <h4 class="font-bold text-${colorClass}-300">${key} : ${percentage}%</h4>
+                        <p class="text-sm text-${colorClass}-200">${votes.toLocaleString('fr-FR')} voix projetées</p>
+                        <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+                            <div class="h-2.5 rounded-full" style="width: ${percentage}%; background-color: ${hexColor}"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            detailsPanel.innerHTML = htmlContent;
+
+            // Mise à jour dynamique de la projection du 2nd tour
+            updateSecondTourProjection(results);
+        }
+        
+        function updateSecondTourProjection(firstTourResults) {
+            
+            // 1. Identifier les candidats au second tour (Top 2)
+            const sortedCandidates = Object.entries(firstTourResults)
+                .sort(([, a], [, b]) => b - a);
+
+            // Hypothèse : Un duel entre le JMV Consolidé et Joé Bedier
+            const c1 = 'JMV Consolidé';
+            const v1_1st = firstTourResults[c1];
+            const c2 = 'Joé Bedier';
+            const v2_1st = firstTourResults[c2];
+
+            // Identifier les éliminés
+            const eliminatedCandidates = sortedCandidates.filter(([name]) => name !== c1 && name !== c2);
+            
+            let v1_2nd = v1_1st; // Base de votes pour JMV
+            let v2_2nd = v2_1st; // Base de votes pour Bedier
+            let totalReportedVotes = 0;
+
+            // 2. Calculer les reports
+            eliminatedCandidates.forEach(([eliminatedName, eliminatedVotes]) => {
+                totalReportedVotes += eliminatedVotes;
+                
+                // Appliquer les taux de report (si le candidat éliminé est dans le modèle)
+                if (REPORT_RATES[eliminatedName]) {
+                    const rates = REPORT_RATES[eliminatedName];
+                    
+                    // Report vers JMV
+                    v1_2nd += Math.round(eliminatedVotes * (rates[c1] || 0));
+                    
+                    // Report vers Bedier
+                    v2_2nd += Math.round(eliminatedVotes * (rates[c2] || 0));
                 }
-            }
-        });
+                // Si l'éliminé n'est pas dans le modèle, ses voix sont considérées comme abstention/divers et ne sont pas reportées.
+            });
+            
+            const total2ndTourVotes = v1_2nd + v2_2nd;
+            const winner = v1_2nd > v2_2nd ? c1 : c2;
+            const loser = v1_2nd > v2_2nd ? c2 : c1;
 
-        // 2. Mobilization Chart (2020)
-        const ctxMob = document.getElementById('mobilizationChart').getContext('2d');
-        new Chart(ctxMob, {
-            type: 'bar',
-            indexAxis: 'y',
-            data: {
-                labels: ['Camp Virapoullé', 'Camp Bedier'],
-                datasets: [{ label: 'Taux de Mobilisation Idéal (%)', data: [83.2, 61.2], backgroundColor: ['#3b82f6', '#06b6d4'], borderRadius: 5 }]
-            },
-            options: {
-                ...commonChartOptions,
-                plugins: { legend: { display: false }, tooltip: tooltipConfig },
-                scales: { y: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, x: { max: 100, title: { display: true, text: 'Pourcentage du Potentiel Mobilisé', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
-            }
-        });
+            const v_winner = v1_2nd > v2_2nd ? v1_2nd : v2_2nd;
+            const v_loser = v1_2nd > v2_2nd ? v2_2nd : v1_2nd;
 
-        // 3. Pool Chart (2020)
-        const ctxPool = document.getElementById('poolChart').getContext('2d');
-        const poolLabels = ['E. Fruteau (LDVG)', 'J-F. Ramassamy (LDVC)', 'S. Moutoucomorapoulé (LDVC)', 'Autres Listes', 'Reports Comportementaux'].map(l => wrapLabel(l));
-        new Chart(ctxPool, {
-            type: 'doughnut',
-            data: {
-                labels: poolLabels,
-                datasets: [{ data: [3107, 1058, 1000, 2769, 2276], backgroundColor: ['#f59e0b', '#34d399', '#f87171', '#94a3b8', '#5b21b6'], hoverOffset: 8 }]
-            },
-            options: { ...commonChartOptions, plugins: { tooltip: tooltipConfig, legend: { position: 'bottom', labels: { color: FONT_COLOR } } } }
-        });
+            const p_winner = ((v_winner / total2ndTourVotes) * 100).toFixed(1);
+            const p_loser = ((v_loser / total2ndTourVotes) * 100).toFixed(1);
 
-        // 4. Validation Chart (2020)
-        const ctxVal = document.getElementById('validationChart').getContext('2d');
-        const valLabels = ['J.M. Virapoullé', 'Joé Bedier'].map(l => wrapLabel(l));
-        new Chart(ctxVal, {
-            type: 'bar',
-            data: {
-                labels: valLabels,
-                datasets: [
-                    { label: 'Prédiction Modèle', data: [9809, 10702], backgroundColor: '#4b5563', borderRadius: 4 },
-                    { label: 'Résultat Réel', data: [9813, 10703], backgroundColor: ['#3b82f6', '#06b6d4'], borderRadius: 4 }
-                ]
-            },
-            options: {
-                ...commonChartOptions,
-                scales: { x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, y: { beginAtZero: false, min: 8000, title: { display: true, text: 'Nombre de Voix', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
+            // 3. Mise à jour du graphique 2nd Tour
+            if (projection2ndTourChart) {
+                // Mettre à jour les données de projection 2026 (stack 1)
+                const data2026 = [0, 0, winner === c2 ? v_winner : v_loser, winner === c1 ? v_winner : v_loser];
+                projection2ndTourChart.data.datasets[1].data = data2026;
+                
+                // Mettre à jour les labels si nécessaire (bien que JMV/Bedier soit fixe ici)
+                projection2ndTourChart.data.labels = [
+                    wrapLabel(`${c2} (2020)`), 
+                    wrapLabel(`${c1} (2020)`), 
+                    wrapLabel(`${c2} (2026 Proj.)`), 
+                    wrapLabel(`${c1} (2026 Proj.)`)
+                ];
+                
+                projection2ndTourChart.update();
             }
-        });
 
-        // 5. Projection 2nd Tour 2026
-        const ctxProj2nd = document.getElementById('projection2ndTourChart').getContext('2d');
-        const proj2ndLabels = ['Bedier (2020)', 'Opp. (2020)', 'Bedier (2026 Proj.)', 'Opp. (2026 Proj.)'].map(l => wrapLabel(l));
-        new Chart(ctxProj2nd, {
-            type: 'bar',
-            data: {
-                labels: proj2ndLabels,
-                datasets: [
-                    { label: 'Voix Réelles 2020', data: [10703, 9813, 0, 0], backgroundColor: ['#06b6d4', '#3b82f6', 'transparent', 'transparent'], stack: 'stack0' },
-                    { label: 'Projection 2026', data: [0, 0, 13000, 13774], backgroundColor: ['transparent', 'transparent', '#06b6d4cc', '#3b82f6cc'], stack: 'stack1' }
-                ]
-            },
-            options: {
-                ...commonChartOptions,
-                scales: { x: { stacked: true, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, y: { beginAtZero: false, min: 9000, stacked: false, title: { display: true, text: 'Nombre de Voix (Projection)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
-            }
-        });
+            // 4. Mise à jour du panneau de détails 2nd Tour
+            const detailsPanel = document.getElementById('projection-details-2nd');
+            
+            const colorClassWinner = winner.includes('JMV') ? 'blue' : 'cyan';
+            const colorClassLoser = loser.includes('JMV') ? 'blue' : 'cyan';
 
-        // 6. Projection 1st Tour 2026
-        const ctxProj1st = document.getElementById('projection1stTourChart').getContext('2d');
-        const proj1stLabels = ['JMV Consolidé', 'Joé Bedier', 'Eric Fruteau', 'L. Virapoullé/RN'].map(l => wrapLabel(l));
-        new Chart(ctxProj1st, {
-            type: 'bar',
-            data: {
-                labels: proj1stLabels,
-                datasets: [{ label: 'Voix (Projection 1er Tour 2026)', data: [9804, 6966, 4644, 3096], backgroundColor: ['#3b82f6', '#06b6d4', '#f59e0b', '#dc2626'], borderRadius: 4 }]
-            },
-            options: {
-                ...commonChartOptions,
-                scales: { x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, y: { beginAtZero: false, min: 2000, title: { display: true, text: 'Nombre de Voix (1er Tour)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
-            }
-        });
+            detailsPanel.innerHTML = `
+                <div class="bg-gray-900 border-b-4 border-amber-500 p-4 text-center">
+                    <h4 class="font-bold text-amber-300">Total Votants (2nd Tour)</h4>
+                    <div class="text-3xl font-extrabold text-white mt-1">${total2ndTourVotes.toLocaleString('fr-FR')}</div>
+                    <p class="text-xs text-gray-400">Total des votes du 1er tour reportés : ${totalReportedVotes.toLocaleString('fr-FR')}</p>
+                </div>
+                
+                <div class="bg-${colorClassWinner}-900/50 border-l-4 border-${colorClassWinner}-700 p-4">
+                    <h4 class="font-bold text-${colorClassWinner}-300">VAINQUEUR PROJETÉ : ${winner}</h4>
+                    <p class="text-sm text-${colorClassWinner}-200">Total voix 1er tour + Reports</p>
+                    <div class="text-3xl font-extrabold text-${colorClassWinner}-400 mt-2">${v_winner.toLocaleString('fr-FR')} voix (${p_winner}%)</div>
+                </div>
+                
+                <div class="bg-${colorClassLoser}-900/50 border-l-4 border-${colorClassLoser}-500 p-4 opacity-75">
+                    <h4 class="font-bold text-${colorClassLoser}-300">${loser}</h4>
+                    <p class="text-sm text-${colorClassLoser}-200">Total voix 1er tour + Reports</p>
+                    <div class="text-3xl font-extrabold text-${colorClassLoser}-400 mt-2">${v_loser.toLocaleString('fr-FR')} voix (${p_loser}%)</div>
+                </div>
+            `;
+        }
+
+        // --- Initialisation des Charts ---
+        
+        window.onload = function() {
+            // Initialisation des charts existants (sections 1, 3)
+
+            // 1. Demographics Chart
+            const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
+            new Chart(ctxDemo, {
+                type: 'bar',
+                data: {
+                    labels: ['2014 (2nd Tour)', '2020 (2nd Tour)'],
+                    datasets: [
+                        { label: 'Inscrits (Vivier)', data: [34727, 42680], backgroundColor: '#3b82f6', order: 2, yAxisID: 'y' },
+                        { label: 'Taux d\'Abstention (%)', data: [26.92, 51.94], borderColor: '#f472b6', backgroundColor: '#f472b6', type: 'line', borderWidth: 3, pointRadius: 6, order: 1, yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } },
+                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Nombre d\'Inscrits', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } },
+                        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Abstention (%)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { drawOnChartArea: false, color: GRID_COLOR } }
+                    }
+                }
+            });
+
+            // 2. Mobilization Chart (2020)
+            const ctxMob = document.getElementById('mobilizationChart').getContext('2d');
+            new Chart(ctxMob, {
+                type: 'bar',
+                indexAxis: 'y',
+                data: {
+                    labels: ['Camp Virapoullé', 'Camp Bedier'],
+                    datasets: [{ label: 'Taux de Mobilisation Idéal (%)', data: [83.2, 61.2], backgroundColor: ['#3b82f6', '#06b6d4'], borderRadius: 5 }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { legend: { display: false }, tooltip: tooltipConfig },
+                    scales: { y: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, x: { max: 100, title: { display: true, text: 'Pourcentage du Potentiel Mobilisé', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
+                }
+            });
+
+            // 3. Pool Chart (2020)
+            const ctxPool = document.getElementById('poolChart').getContext('2d');
+            const poolLabels = ['E. Fruteau (LDVG)', 'J-F. Ramassamy (LDVC)', 'S. Moutoucomorapoulé (LDVC)', 'Autres Listes', 'Reports Comportementaux'].map(l => wrapLabel(l));
+            new Chart(ctxPool, {
+                type: 'doughnut',
+                data: {
+                    labels: poolLabels,
+                    datasets: [{ data: [3107, 1058, 1000, 2769, 2276], backgroundColor: ['#f59e0b', '#34d399', '#f87171', '#94a3b8', '#5b21b6'], hoverOffset: 8 }]
+                },
+                options: { ...commonChartOptions, plugins: { tooltip: tooltipConfig, legend: { position: 'bottom', labels: { color: FONT_COLOR } } } }
+            });
+
+            // 4. Validation Chart (2020)
+            const ctxVal = document.getElementById('validationChart').getContext('2d');
+            const valLabels = ['J.M. Virapoullé', 'Joé Bedier'].map(l => wrapLabel(l));
+            new Chart(ctxVal, {
+                type: 'bar',
+                data: {
+                    labels: valLabels,
+                    datasets: [
+                        { label: 'Prédiction Modèle', data: [9809, 10702], backgroundColor: '#4b5563', borderRadius: 4 },
+                        { label: 'Résultat Réel', data: [9813, 10703], backgroundColor: ['#3b82f6', '#06b6d4'], borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: { x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, y: { beginAtZero: false, min: 8000, title: { display: true, text: 'Nombre de Voix', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
+                }
+            });
+            
+            // 6. Projection 2nd Tour 2026 (Initialisation dynamique)
+            const ctxProj2nd = document.getElementById('projection2ndTourChart').getContext('2d');
+            const proj2ndLabels = ['Bedier (2020)', 'Opp. (2020)', 'Bedier (2026 Proj.)', 'Opp. (2026 Proj.)'].map(l => wrapLabel(l));
+            projection2ndTourChart = new Chart(ctxProj2nd, {
+                type: 'bar',
+                data: {
+                    labels: proj2ndLabels,
+                    datasets: [
+                        // Stack 0: Données réelles 2020 (Statiques)
+                        { label: 'Voix Réelles 2020', data: [10703, 9813, 0, 0], backgroundColor: ['#06b6d4', '#3b82f6', 'transparent', 'transparent'], stack: 'stack0' },
+                        // Stack 1: Projection 2026 (Dynamique) - Initialisation à zéro, sera mise à jour
+                        { label: 'Projection 2026', data: [0, 0, 0, 0], backgroundColor: ['transparent', 'transparent', '#06b6d4cc', '#3b82f6cc'], stack: 'stack1' }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: { 
+                        x: { stacked: true, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, 
+                        y: { beginAtZero: false, min: 9000, max: 15000, stacked: false, title: { display: true, text: 'Nombre de Voix (Projection)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } 
+                    }
+                }
+            });
+
+
+            // --- Initialisation de la Projection 1er Tour (Section 4) ---
+
+            const ctxProj1st = document.getElementById('projection1stTourChart').getContext('2d');
+            const proj1stLabels = ['JMV Consolidé', 'Joé Bedier', 'Eric Fruteau', 'L. Virapoullé/RN'].map(l => wrapLabel(l));
+            
+            // Initialisation avec epsilon=0.5
+            const initialResults = calculate2026Projection(0.5);
+
+            projection1stTourChart = new Chart(ctxProj1st, {
+                type: 'bar',
+                data: {
+                    labels: proj1stLabels,
+                    datasets: [{ 
+                        label: 'Voix (Projection 1er Tour 2026)', 
+                        data: Object.values(initialResults), 
+                        backgroundColor: ['#3b82f6', '#06b6d4', '#f59e0b', '#dc2626'], 
+                        borderRadius: 4 
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: { x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, y: { beginAtZero: false, min: 2000, title: { display: true, text: 'Nombre de Voix (1er Tour)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
+                }
+            });
+            
+            // Mise à jour de l'interface au chargement initial (important pour le 2nd tour)
+            updateProjectionChartAndDetails(0.5); 
+
+
+            // --- Gestion du Slider d'Érosion ---
+
+            const slider = document.getElementById('erosion-slider');
+            const valueSpan = document.getElementById('erosion-value');
+
+            slider.addEventListener('input', (event) => {
+                // Convertir la valeur du slider (0 à 100) en epsilon (0.00 à 1.00)
+                const sliderValue = parseInt(event.target.value, 10);
+                const epsilon = sliderValue / 100;
+                
+                // Mettre à jour l'affichage de la valeur
+                valueSpan.textContent = epsilon.toFixed(2);
+                
+                // Mettre à jour le graphique et les détails
+                updateProjectionChartAndDetails(epsilon);
+            });
+        };
     </script>
 </body>
 </html>
