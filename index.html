@@ -254,7 +254,7 @@
         <footer class="text-center py-12 space-y-4">
             <h3 class="text-2xl font-bold text-gray-200">Conclusion</h3>
             <p class="max-w-2xl mx-auto text-gray-400">
-                L'élection de 2026 s'annonce comme le miroir inversé de 2020. La capacité du sortant à rallier l'électorat de gauche d'Eric Fruteau sera critique face à un bloc d'opposition fortement consolidé par le vote RN.
+                L'élection de 2026 s'annonce comme le miroir inversé de 2020. La capacité du sortant à rallier l'électorat de gauche d'Eric Fruteau sera critique. Cependant, la clé de la victoire au second tour résidera dans le **pool de voix de Droite Indépendante** (associé à Laurent), dont le report sera l'arbitre incontournable du scrutin. La consolidation de l'Opposition autour de ces voix est la menace principale pour le sortant.
             </p>
             <div class="text-xs text-gray-500 mt-8">
                 Généré par Canvas Infographics
@@ -412,7 +412,7 @@
 
                 htmlContent += `
                     <div class="bg-${colorClass}-900/50 border-l-4 border-${colorClass}-500 p-4">
-                        <h4 class="font-bold text-${colorClass}-300">${key} : ${percentage}%</h4>
+                        <h4 class="font-bold text-${colorClass}-300">${key.replace('/RN', '')} : ${percentage}%</h4>
                         <p class="text-sm text-${colorClass}-200">${votes.toLocaleString('fr-FR')} voix projetées</p>
                         <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
                             <div class="h-2.5 rounded-full" style="width: ${percentage}%; background-color: ${hexColor}"></div>
@@ -616,7 +616,7 @@
             // --- Initialisation de la Projection 1er Tour (Section 4) ---
 
             const ctxProj1st = document.getElementById('projection1stTourChart').getContext('2d');
-            const proj1stLabels = ['JMV Consolidé', 'Joé Bedier', 'Eric Fruteau', 'L. Virapoullé/RN'].map(l => wrapLabel(l));
+            const proj1stLabels = ['JMV Consolidé', 'Joé Bedier', 'Eric Fruteau', 'L. Virapoullé'].map(l => wrapLabel(l)); // L. Virapoullé est le seul label ici
             
             // Initialisation avec epsilon=0.5
             const initialResults = calculate2026Projection(0.5);
