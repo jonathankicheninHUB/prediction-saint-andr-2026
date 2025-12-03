@@ -438,7 +438,6 @@
             'Pool Droit Indépendant (Laurent)': 3558  
         };
         // V_i, t^proj (Projeté Actuel) - Estimation de la force actuelle du candidat (Attraction A_i)
-        // Les valeurs ont été ajustées pour correspondre aux poids de l'Attraction
         const V_CURRENT_BASE = {
             'JMV Consolidé': 12000, // Forte attraction actuelle estimée
             'Joé Bedier': 9000,
@@ -616,14 +615,23 @@
             const expressedVotes = dynamicTotalVotes2026;
             
             const results = {};
-            const keys = Object.keys(V_CURRENT_BASE);
+            const keys = Object.keys(V_CURRENT_BASE).filter(key => key !== 'Joé Bedier'); // Exclure Bedier de la boucle pour le recalcul
+            keys.push('Joé Bedier'); // Ajouter Bedier à la fin
             let totalProjectedVotes = 0;
+
+            
+            // --- Ajustement dynamique V_CURRENT_BASE pour JMV/Bedier ---
+            // Déplacé dans updateSimulation pour être exécuté avant calculate2026Projection
+            
+            // --- Vérification du total après ajustement ---
+            // Le TOTAL_V_CURRENT_BASE est maintenant le total de la base projetée des 4 candidats.
+            const currentTotalVCurrentBase = Object.values(V_CURRENT_BASE).reduce((sum, val) => sum + val, 0);
+
 
             for (const key of keys) {
                 
                 // 1. Calcul du Facteur d'Attraction Normalisé (A_i / Sum A_j)
-                // Le poids d'attraction est simplement le poids actuel (V_i, t^proj) divisé par le total de cette base.
-                const attractionFactor = V_CURRENT_BASE[key] / TOTAL_V_CURRENT_BASE;
+                const attractionFactor = V_CURRENT_BASE[key] / currentTotalVCurrentBase;
                 
                 // 2. Application de la formule :
                 // V_i, t = (1 - epsilon) * V_i, t-1 + epsilon * (AttractionFactor * expressedVotes)
@@ -635,8 +643,6 @@
                 const attractionTerm = attractionFactor * expressedVotes; 
                 
                 // Combinaison des termes selon epsilon (Équation finale)
-                // Note : La participation est intégrée dans l'ajustement du terme attraction, 
-                // ce qui est équivalent à multiplier toute la parenthèse par pi.
                 const projectedVotes = (1 - epsilon) * fidelityTerm + epsilon * attractionTerm;
                 
                 results[key] = projectedVotes; 
@@ -644,11 +650,10 @@
             }
 
             // Normalisation finale (Réajustement pour s'assurer que Sum V_i, t = expressedVotes)
-            // C'est nécessaire car l'ajustement de pi n'est pas linéaire sur l'ensemble.
             const scalingFactor = expressedVotes / totalProjectedVotes;
             const finalResults = {};
             
-            for (const key of keys) {
+            for (const key of Object.keys(results)) {
                 finalResults[key] = Math.round(results[key] * scalingFactor);
             }
 
@@ -660,17 +665,17 @@
         function updateSimulation() {
             // 1. Mise à jour de l'affichage du Score Projeté
             const scoreSlider = document.getElementById('score-projeté-slider');
-            document.getElementById('score-projeté-value').textContent = scoreSlider.value + '%';
+            const scorePercentage = parseInt(scoreSlider.value);
+            document.getElementById('score-projeté-value').textContent = scorePercentage + '%';
             
             // Mise à jour de V_CURRENT_BASE[JMV Consolidé] basée sur le slider "Score Projeté"
-            // JMV Consolidé représente l'Opposition. Nous normalisons le slider 10-50% sur la part du pool d'attraction.
-            // Pour simplifier le modèle, nous utilisons le slider pour moduler l'attraction de JMV et Bedier
-            const scorePercentage = parseInt(scoreSlider.value) / 100;
-            const remainingBase = TOTAL_V_CURRENT_BASE - V_CURRENT_BASE['Eric Fruteau'] - V_CURRENT_BASE['Pool Droit Indépendant (Laurent)'];
+            // Le slider module la répartition de la base de voix principale (JMV + Bedier)
+            // Calcul de la base totale pour JMV et Bedier dans V_CURRENT_BASE (Statique)
+            const JMV_BEDIER_BASE_SUM = V_CURRENT_BASE['JMV Consolidé'] + V_CURRENT_BASE['Joé Bedier'];
             
-            // La somme des poids Bedier et JMV doit rester autour de 21000
-            V_CURRENT_BASE['JMV Consolidé'] = Math.round(remainingBase * scorePercentage);
-            V_CURRENT_BASE['Joé Bedier'] = Math.round(remainingBase * (1 - scorePercentage));
+            // V_CURRENT_BASE['JMV Consolidé'] = (Score Projeté / 100) * (Somme JMV+Bedier)
+            V_CURRENT_BASE['JMV Consolidé'] = Math.round((scorePercentage / 100) * JMV_BEDIER_BASE_SUM);
+            V_CURRENT_BASE['Joé Bedier'] = JMV_BEDIER_BASE_SUM - V_CURRENT_BASE['JMV Consolidé'];
 
 
             // 2. Calculer le Momentum (CMP)
@@ -701,7 +706,9 @@
             // Mise à jour du graphique 1er Tour
             if (projection1stTourChart) {
                 projection1stTourChart.data.datasets[0].data = dataArray;
-                projection1stTourChart.options.scales.y.max = Math.ceil(Math.max(...dataArray) / 1000) * 1000 + 1000;
+                // Ajuster l'axe Y pour la lisibilité
+                const maxVal = Math.max(...dataArray);
+                projection1stTourChart.options.scales.y.max = Math.ceil(maxVal / 1000) * 1000 + (maxVal < 10000 ? 500 : 1000);
                 projection1stTourChart.update();
             }
 
@@ -710,27 +717,29 @@
             detailsPanel.innerHTML = '';
             
             const displayKeys = Object.keys(results).slice(0, 4); 
-            const colors = ['#3b82f6', '#06b6d4', '#f59e0b', '#f97316']; 
+            // Couleurs ajustées pour le code injection HTML
+            const colorMap = {
+                'JMV Consolidé': { hex: '#3b82f6', class: 'blue' },
+                'Joé Bedier': { hex: '#06b6d4', class: 'cyan' },
+                'Eric Fruteau': { hex: '#f59e0b', class: 'amber' },
+                'Pool Droit Indépendant (Laurent)': { hex: '#f97316', class: 'orange' }
+            };
+
             let htmlContent = '';
             
-            displayKeys.forEach((key, index) => {
+            displayKeys.forEach((key) => {
                 const votes = results[key];
                 // Le pourcentage est basé sur le total dynamique des votes exprimés
                 const percentage = ((votes / dynamicTotalVotes2026) * 100).toFixed(1);
                 
-                let colorClass = '';
-                let hexColor = colors[index];
-                if (key.includes('JMV Consolidé')) colorClass = 'blue';
-                else if (key.includes('Bedier')) colorClass = 'cyan';
-                else if (key.includes('Fruteau')) colorClass = 'amber';
-                else if (key.includes('Laurent')) colorClass = 'orange';
+                const colorInfo = colorMap[key];
 
                 htmlContent += `
-                    <div class="bg-${colorClass}-900/50 border-l-4 border-${colorClass}-500 p-4">
-                        <h4 class="font-bold text-${colorClass}-300">${key.replace('Pool Droit Indépendant (Laurent)', 'Pool Laurent')} : ${percentage}%</h4>
-                        <p class="text-sm text-${colorClass}-200">${votes.toLocaleString('fr-FR')} voix projetées</p>
+                    <div class="bg-${colorInfo.class}-900/50 border-l-4 border-${colorInfo.class}-500 p-4">
+                        <h4 class="font-bold text-${colorInfo.class}-300">${key.replace('Pool Droit Indépendant (Laurent)', 'Pool Laurent')} : ${percentage}%</h4>
+                        <p class="text-sm text-${colorInfo.class}-200">${votes.toLocaleString('fr-FR')} voix projetées</p>
                         <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
-                            <div class="h-2.5 rounded-full" style="width: ${percentage}%; background-color: ${hexColor}"></div>
+                            <div class="h-2.5 rounded-full" style="width: ${percentage}%; background-color: ${colorInfo.hex}"></div>
                         </div>
                     </div>
                 `;
@@ -791,10 +800,12 @@
 
             // 3. Mise à jour du graphique 2nd Tour
             if (projection2ndTourChart) {
+                // Les données du 2nd tour 2026 sont aux indices 2 et 3
                 const data2026 = [0, 0, v2_2nd, v1_2nd];
                 
                 projection2ndTourChart.data.datasets[1].data = data2026;
-                projection2ndTourChart.options.scales.y.max = Math.ceil(Math.max(v1_2nd, v2_2nd) / 1000) * 1000 + 1000;
+                // Ajuster l'axe Y pour la lisibilité
+                projection2ndTourChart.options.scales.y.max = Math.ceil(Math.max(v1_2nd, v2_2nd, 10703, 9813) / 1000) * 1000 + 1000;
                 projection2ndTourChart.update();
             }
 
@@ -942,7 +953,7 @@
                 },
                 options: {
                     ...commonChartOptions,
-                    scales: { x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, y: { beginAtZero: false, min: 2000, title: { display: true, text: 'Nombre de Voix (1er Tour)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
+                    scales: { x: { ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } }, y: { beginAtZero: false, min: 2000, max: 10000, title: { display: true, text: 'Nombre de Voix (1er Tour)', color: FONT_COLOR }, ticks: { color: FONT_COLOR }, grid: { color: GRID_COLOR } } }
                 }
             });
             
