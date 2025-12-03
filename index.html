@@ -7,7 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Roboto:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Roboto:wght&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'); /* Ajout pour l'esthétique futuriste */
         
         body {
             /* Dark Mode par défaut */
@@ -39,13 +40,83 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
         }
 
-        .arrow-down {
-            width: 0; 
-            height: 0; 
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 20px solid #374151; 
+        /* Style pour le slider personnalisé */
+        .range-orange::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #f97316; /* Orange-500 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid #1f2937; /* Gray-800 */
+        }
+        
+        /* --- Styles du Speedometer (CMP) --- */
+        .gauge-container {
+            width: 280px; /* Légèrement réduit pour l'intégration */
+            height: 140px;
+            overflow: hidden;
+            position: relative;
             margin: 0 auto;
+        }
+
+        .gauge-meter {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            /* Dégradé des zones de couleur: Rouge (0-30), Orange (30-60), Vert (60-100) */
+            background: conic-gradient(
+                #ef4444 0% 30%, 
+                #f97316 30% 60%, 
+                #10b981 60% 100%
+            );
+            position: absolute;
+            top: 0;
+            left: 0;
+            clip: rect(0, 280px, 140px, 0); /* Masque la moitié inférieure */
+        }
+
+        .gauge-inner-circle {
+            width: 240px;
+            height: 240px;
+            background-color: #121212; /* Fond de l'application */
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .gauge-needle-container {
+            position: absolute;
+            top: 140px;
+            left: 140px;
+            transform-origin: 0 0;
+            transition: transform 0.5s ease-in-out;
+            z-index: 10;
+        }
+
+        .gauge-needle {
+            width: 120px;
+            height: 3px;
+            background-color: #e5e7eb; 
+            position: absolute;
+            top: -1.5px;
+            left: 20px;
+            transform-origin: 0 50%;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(229, 231, 235, 0.5);
+        }
+
+        .gauge-needle-center {
+            width: 16px;
+            height: 16px;
+            background-color: #e5e7eb;
+            border-radius: 50%;
+            position: absolute;
+            top: -8px;
+            left: 0;
+            box-shadow: 0 0 10px #e5e7eb;
         }
     </style>
 </head>
@@ -66,7 +137,7 @@
 
     <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-12">
 
-        <!-- CONTEXTE 2020 -->
+        <!-- 1. CONTEXTE 2020 -->
         <section class="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
             <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-4 border-b-4 border-pink-500 inline-block pb-1">1. L'Anatomie de la Bascule (2020)</h2>
             <p class="text-lg text-gray-200 leading-relaxed mb-6">
@@ -130,43 +201,13 @@
                 </div>
             </div>
         </section>
-        
-        <!-- NOUVELLE SECTION - EROSION -->
-        <section class="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
-            <h2 class="text-2xl md:text-3xl font-bold text-purple-400 mb-4 border-b-4 border-purple-500 inline-block pb-1">2. Le Modèle Avancé : Intégration de l'Érosion ($\epsilon$)</h2>
-            <p class="text-lg text-gray-200 leading-relaxed mb-4">
-                Pour affiner la prédiction du 1er tour, on formalise un lien entre les élections passées et la dynamique actuelle en introduisant un paramètre d’érosion ($\epsilon$). Ce paramètre modélise la perte de fidélité électorale d’une élection à l’autre, reconnaissant que les votes passés influencent le scrutin actuel, mais que leur effet décroît avec le temps ou les changements locaux.
-            </p>
 
-            <h3 class="text-xl font-bold text-purple-300 mt-6 mb-2">Formule Générique avec Érosion</h3>
-            <p class="text-gray-400 mb-4 text-sm italic">
-                Soit $V_i^{t}$ les voix prévues pour le candidat $i$ au tour actuel $t$, $V_i^{t-1}$ les voix obtenues lors de l’élection précédente (ex. 2014), et $P_{i,j}$ la proportion du pool redistribué des listes éliminées.
-            </p>
 
-            <div class="bg-gray-900 p-6 rounded-lg overflow-x-auto text-white font-mono text-lg">
-                $$
-                V_i^{t} = (1-\epsilon) \cdot f(V_i^{t-1}) + \epsilon \cdot \big(V_i^{\text{direct}} + \sum_{j\in \text{listes éliminées}} P_{i,j} \cdot V_j^{\text{direct}}\big)
-                $$
-            </div>
-            
-            <div class="mt-6 space-y-3">
-                <div class="text-sm text-gray-300">
-                    <span class="font-bold text-purple-300">($\epsilon \in [0,1]$) :</span> Paramètre d’érosion, représentant l’influence du passé. Si $\epsilon = 1$, il n'y a pas de lien avec le passé (seul le scrutin courant compte). Si $\epsilon = 0$, il y a fidélité totale au scrutin précédent.
-                </div>
-                <div class="text-sm text-gray-300">
-                    <span class="font-bold text-purple-300">($f(V_i^{t-1})$) :</span> Fonction d’ajustement du vote passé (ex. évolution démographique, tendance du parti).
-                </div>
-                <div class="text-sm text-gray-300">
-                    <span class="font-bold text-purple-300">($V_i^{\text{direct}}$) :</span> Voix “directes” mesurées au 1er tour actuel pour ce candidat.
-                </div>
-            </div>
-        </section>
-
-        <!-- VALIDATION DU MODÈLE (Maintenant Section 3) -->
+        <!-- 2. VALIDATION DU MODÈLE -->
         <section class="bg-gray-700 rounded-xl shadow-lg p-6 md:p-8">
-            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-2">3. Validation du Modèle Prédictif</h2>
+            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-2">2. Validation du Modèle Prédictif</h2>
             <p class="text-gray-200 mb-6">
-                Application de la formule simplifiée (sans érosion pour la validation historique) : <code class="bg-gray-800 text-white px-2 py-1 rounded text-sm font-mono">V2 = V1 + (Pool × Taux)</code>. Précision remarquable.
+                Le modèle, même dans sa forme simplifiée, a prédit les résultats de 2020 avec une précision remarquable. Application de la formule historique : <code class="bg-gray-800 text-white px-2 py-1 rounded text-sm font-mono">V2 = V1 + (Pool × Taux)</code>.
             </p>
             <div class="chart-container">
                 <canvas id="validationChart"></canvas>
@@ -199,15 +240,80 @@
             </div>
         </section>
 
-        <!-- PROJECTION 2026 - PREMIER TOUR (Maintenant Section 4) -->
+        <!-- 3. PROJECTION 2026 - PREMIER TOUR (FORMULE COMPLEXE) -->
         <section id="projection2026_premier_tour" class="bg-gray-700 rounded-xl shadow-lg p-6 md:p-8 border-4 border-cyan-500">
-            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-4 border-b-4 border-cyan-500 inline-block pb-1">4. Projection 1er Tour 2026 (Simulation d'Érosion)</h2>
+            <h2 class="text-2xl md:text-3xl font-bold text-cyan-400 mb-4 border-b-4 border-cyan-500 inline-block pb-1">3. Projection 1er Tour 2026 (Modèle Dynamique du Vote)</h2>
+            
             <p class="text-lg text-gray-200 leading-relaxed mb-6">
-                Ajustez le paramètre d'érosion ($\epsilon$) pour simuler l'impact du passé (2014) par rapport à la dynamique actuelle (Projections 2026).
+                Nous utilisons un modèle de dynamique électorale pour estimer les voix $V_{i, t}$ du candidat $i$ au temps $t=2026$. Ce modèle combine la fidélité historique et l'attraction actuelle, modulées par le paramètre d'érosion ($\epsilon$) et la participation ($\pi$).
             </p>
+            
+            <!-- FORMULE MATHÉMATIQUE -->
+            <div class="bg-gray-900 p-6 rounded-lg mb-8 shadow-inner border border-yellow-500/50 overflow-x-auto">
+                <h3 class="text-xl font-bold text-yellow-400 mb-4">Équation de Projection (1er Tour)</h3>
+                <div class="text-xl font-mono text-white leading-relaxed">
+                    $$V_{i, t} = \pi \cdot \left[ (1 - \epsilon) \cdot V_{i, t-1} + \epsilon \cdot \left( \frac{A_i}{\sum_{j} A_j} \cdot V_{i, t}^{proj} \right) \right]$$
+                </div>
+                <p class="text-sm text-gray-400 mt-4">Où :</p>
+                <ul class="text-sm text-gray-400 list-disc list-inside space-y-1 mt-2">
+                    <li>$V_{i, t}$ : Voix projetées pour le candidat $i$ en 2026.</li>
+                    <li>$\pi$ : Taux de Participation ajusté du scrutin (Slider).</li>
+                    <li>$\epsilon$ : Paramètre d'Érosion/Momentum (Slider) entre 0 (Mémoire totale) et 1 (Momentum pur).</li>
+                    <li>$V_{i, t-1}$ : Voix obtenues en 2014 (Représente la base historique de fidélité).</li>
+                    <li>$V_{i, t}^{proj}$ : Poids des voix estimé pour $i$ basé sur les sondages/réalité de 2026.</li>
+                    <li>$A_i / \sum A_j$ : Facteur d'Attraction Normalisé, modélisant la "distance" entre les candidats et le vote disponible.</li>
+                </ul>
+            </div>
+            
+            <!-- GAUGE DE MOMENTUM -->
+            <div class="bg-gray-900 p-6 rounded-xl mb-8 shadow-inner border border-green-700/50 text-center">
+                <h3 class="text-xl font-bold mb-2 text-green-400 tracking-wider">
+                    Courbe de Momentum Politique (CMP)
+                </h3>
+                <div class="gauge-container">
+                    <div class="gauge-meter"></div>
+                    <div class="gauge-inner-circle"></div>
+                    <div id="gaugeNeedleContainer" class="gauge-needle-container" style="transform: rotate(-90deg);">
+                        <div class="gauge-needle"></div>
+                        <div class="gauge-needle-center"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-5xl font-bold tracking-tight text-white">
+                        <span id="cmpValue" class="text-yellow-400">50.0</span>
+                        <span class="text-xl text-gray-400">/ 100</span>
+                    </p>
+                    <p id="cmpStatus" class="text-xl mt-2 font-medium text-yellow-400">Zone de turbulence</p>
+                </div>
+            </div>
 
-            <!-- SLIDER INTERACTIF -->
-            <div class="bg-gray-900 p-6 rounded-lg mb-8 shadow-inner">
+
+            <!-- SLIDER DE PARTICIPATION -->
+            <div class="bg-gray-900 p-6 rounded-lg mb-8 shadow-inner border border-green-700">
+                <label for="participation-slider" class="block text-xl font-bold text-green-400 mb-3">
+                    Taux de Participation (1er Tour) : <span id="participation-value" class="text-2xl font-extrabold text-white ml-2">55%</span>
+                </label>
+                <input type="range" id="participation-slider" min="40" max="80" value="55" step="1" 
+                       class="w-full h-2 bg-green-700 rounded-lg appearance-none cursor-pointer range-lg">
+                <div class="flex justify-between text-sm text-gray-400 mt-2">
+                    <span>40% (Forte Abstention)</span>
+                    <span>80% (Forte Mobilisation)</span>
+                </div>
+                <div class="mt-4 pt-2 border-t border-gray-700 grid grid-cols-2 gap-4 text-sm font-semibold">
+                    <div>
+                        <span class="text-gray-400">Votants (Inscrits : 42 680):</span>
+                        <span id="total-voters-2026" class="text-green-300 ml-2"></span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Abstentionnistes :</span>
+                        <span id="abstention-2026" class="text-red-400 ml-2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDER D'ÉROSION -->
+            <div class="bg-gray-900 p-6 rounded-lg mb-8 shadow-inner border border-purple-700">
                 <label for="erosion-slider" class="block text-xl font-bold text-purple-300 mb-3">
                     Paramètre d'Érosion ($\epsilon$) : <span id="erosion-value" class="text-2xl font-extrabold text-white ml-2">0.50</span>
                 </label>
@@ -217,6 +323,20 @@
                     <span>$\epsilon$ = 1 (Seul le Présent Compte)</span>
                 </div>
             </div>
+            
+             <!-- SLIDER SCORE PROJETÉ (pour le CMP) -->
+            <div class="bg-gray-900 p-6 rounded-lg mb-8 shadow-inner border border-blue-700">
+                <label for="score-projeté-slider" class="block text-xl font-bold text-blue-300 mb-3">
+                    Score Projeté du Candidat (JMV/Opposition) : <span id="score-projeté-value" class="text-2xl font-extrabold text-white ml-2">25%</span>
+                </label>
+                <input type="range" id="score-projeté-slider" min="10" max="50" value="25" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg">
+                <div class="flex justify-between text-sm text-gray-400 mt-2">
+                    <span>10% (Score Faible)</span>
+                    <span>50% (Score Fort)</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1 italic">Ce score représente la force initiale du candidat principal de l'opposition au 1er tour.</p>
+            </div>
+
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div class="order-2 md:order-1">
@@ -231,11 +351,11 @@
             </div>
         </section>
 
-        <!-- PROJECTION 2026 - SECOND TOUR (Maintenant Section 5) -->
+        <!-- 4. PROJECTION 2026 - SECOND TOUR -->
         <section id="projection2026_second_tour" class="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 border-4 border-amber-500">
-            <h2 class="text-2xl md:text-3xl font-bold text-amber-400 mb-4 border-b-4 border-amber-500 inline-block pb-1">5. Projection 2nd Tour 2026 (Duel Dynamique)</h2>
+            <h2 class="text-2xl md:text-3xl font-bold text-amber-400 mb-4 border-b-4 border-amber-500 inline-block pb-1">4. Projection 2nd Tour 2026 (Duel Dynamique)</h2>
             <p class="text-lg text-gray-200 leading-relaxed mb-6">
-                Ce duel est calculé en temps réel en fonction des résultats du 1er tour ajustés par l'érosion ($\epsilon$). Un modèle de report réaliste des voix éliminées est appliqué pour projeter le vainqueur.
+                Ce duel est calculé en temps réel en fonction des résultats du 1er tour et du paramètre d'arbitrage ci-dessous.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -251,10 +371,35 @@
             </div>
         </section>
 
+        <!-- 5. ARBITRAGE LAURENT (MINIMUM CORRIGÉ À 10%) -->
+        <section class="bg-gray-700 rounded-xl shadow-lg p-6 md:p-8 border-4 border-orange-500">
+            <h2 class="text-2xl md:text-3xl font-bold text-orange-400 mb-4 border-b-4 border-orange-500 inline-block pb-1">5. Le Facteur Arbitre : Soutien du Pool Laurent</h2>
+            <p class="text-lg text-gray-200 leading-relaxed mb-6">
+                Le Pool Droit Indépendant (Laurent) est l'arbitre du 2nd tour. Simulez ici le niveau de son ralliement à l'Opposition (JMV Consolidé) pour voir son impact direct sur le résultat final.
+            </p>
+
+            <!-- SLIDER ARBITRAGE LAURENT - MINIMUM CORRIGÉ À 10 -->
+            <div class="bg-gray-900 p-6 rounded-lg mb-8 shadow-inner">
+                <label for="laurent-arbitrage-slider" class="block text-xl font-bold text-orange-300 mb-3">
+                    % de Ralliement du Pool Laurent vers l'Opposition (JMV) : <span id="laurent-arbitrage-value" class="text-2xl font-extrabold text-white ml-2">85%</span>
+                </label>
+                <input type="range" id="laurent-arbitrage-slider" min="10" max="100" value="85" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg range-orange">
+                <div class="flex justify-between text-sm text-gray-400 mt-2">
+                    <span>10% (Ralliement Très Faible)</span>
+                    <span>100% (Ralliement Total)</span>
+                </div>
+            </div>
+            
+            <p class="text-sm text-gray-400 italic mt-4">
+                *Note : Les voix restantes (après report JMV et 5% fixe pour Bedier) sont considérées comme de l'abstention.
+            </p>
+        </section>
+
+
         <footer class="text-center py-12 space-y-4">
             <h3 class="text-2xl font-bold text-gray-200">Conclusion</h3>
             <p class="max-w-2xl mx-auto text-gray-400">
-                L'élection de 2026 s'annonce comme le miroir inversé de 2020. La capacité du sortant à rallier l'électorat de gauche d'Eric Fruteau sera critique. Cependant, la clé de la victoire au second tour résidera dans le **pool de voix de Droite Indépendante** (associé à Laurent), dont le report sera l'arbitre incontournable du scrutin. La consolidation de l'Opposition autour de ces voix est la menace principale pour le sortant.
+                L'élection de 2026 s'annonce comme le miroir inversé de 2020. La capacité du sortant à rallier l'électorat de gauche d'Eric Fruteau sera critique. Cependant, la clé de la victoire au second tour résidera dans le **pool de voix de Droite Indépendante (associé à Laurent)**, dont le report sera l'arbitre incontournable du scrutin. La consolidation de l'Opposition autour de ces voix est la menace principale pour le sortant.
             </p>
             <div class="text-xs text-gray-500 mt-8">
                 Généré par Canvas Infographics
@@ -268,31 +413,49 @@
         const FONT_COLOR = '#e0e0e0';
         const GRID_COLOR = 'rgba(224, 224, 224, 0.1)';
         
+        // --- CONSTANTES DE BASE (SAINT-ANDRÉ 2020) ---
+        const TOTAL_REGISTERED_VOTERS = 42680; // Inscrits 2020 (Base de calcul pour 2026)
+        const BLANK_NULL_RATE = 0.05; // 5% de votes blancs ou nuls
+        const VOTES_BASE_REFERENCE = 24510; // Total des voix exprimées dans la projection V_CURRENT_BASE (2020 réel)
+        
+        // État dynamique des votes totaux (mis à jour par le slider de participation)
+        let dynamicTotalVotes2026 = VOTES_BASE_REFERENCE; 
+        let laurentSupportRate = 0.85; // Initialisation à 85% (valeur par défaut du slider Arbitrage)
+        
+        // --- Poids CMP (NOUVEAU) ---
+        const WEIGHT_P = 0.4; // Poids Participation (max 80%)
+        const WEIGHT_E = 0.4; // Poids (1 - Érosion)
+        const WEIGHT_S = 0.2; // Poids Score projeté (max 50%)
+
+
+        
         // Données du Modèle d'Érosion pour le 1er tour 2026
-        // Base Historique 2014 (V_i^t-1) - Votes réels 2014 pour la tendance
+        // V_i, t-1 (Historique 2014) - Voix réelles 2014 pour la fidélité
         const V_2014_BASE = {
-            'JMV Consolidé': 9756,    // JMV 2014
-            'Joé Bedier': 7851,       // Bedier 2014
-            'Eric Fruteau': 6345,     // Fruteau 2014
-            'L. Virapoullé/RN': 3558  // Votes restants pour normalisation
+            'JMV Consolidé': 9756,    
+            'Joé Bedier': 7851,       
+            'Eric Fruteau': 6345,     
+            'Pool Droit Indépendant (Laurent)': 3558  
         };
-        // Base Actuelle Projetée (V_i^direct + Pool) - Initial 2026 projection
+        // V_i, t^proj (Projeté Actuel) - Estimation de la force actuelle du candidat (Attraction A_i)
+        // Les valeurs ont été ajustées pour correspondre aux poids de l'Attraction
         const V_CURRENT_BASE = {
-            'JMV Consolidé': 9804,
-            'Joé Bedier': 6966,
-            'Eric Fruteau': 4644,
-            'L. Virapoullé/RN': 3096
+            'JMV Consolidé': 12000, // Forte attraction actuelle estimée
+            'Joé Bedier': 9000,
+            'Eric Fruteau': 4000,
+            'Pool Droit Indépendant (Laurent)': 6000 // Le pool Laurent est volatile, son attraction est moyenne/élevée
         };
-        const TOTAL_VOTES_2026_PROJ = 24510; // Total des votes exprimés projetés (somme des V_CURRENT_BASE)
+        // Total de la base projetée pour la normalisation de l'Attraction
+        const TOTAL_V_CURRENT_BASE = Object.values(V_CURRENT_BASE).reduce((sum, val) => sum + val, 0);
+
 
         // Modèle de Report du 1er au 2nd Tour (Estimation)
         // Les pourcentages sont: [Vers JMV, Vers Bedier, Abstention]
-        const REPORT_RATES = {
+        const REPORT_RATES_BASE = {
             'Eric Fruteau': { 'JMV Consolidé': 0.30, 'Joé Bedier': 0.60, 'Abstention': 0.10 },
-            'L. Virapoullé/RN': { 'JMV Consolidé': 0.85, 'Joé Bedier': 0.05, 'Abstention': 0.10 }
+            // Le pool Laurent est géré par le slider dynamique (Section 6)
         };
-
-
+        
         // Initialisation des variables globales des graphiques
         let projection1stTourChart = null;
         let projection2ndTourChart = null;
@@ -335,8 +498,10 @@
                     }
                     if (context.parsed.y !== null) {
                         label += Math.round(context.parsed.y).toLocaleString('fr-FR') + ' voix';
-                        if (context.dataset.label === 'Projection 2026') {
-                             const total = context.chart.data.datasets[1].data.reduce((a, b) => a + b, 0);
+                        if (context.dataset.label === 'Projection 2026' || context.dataset.label === 'Voix (Projection 1er Tour 2026)') {
+                             // Le total pour le pourcentage est dynamique
+                             // Pour le 1er tour, on utilise dynamicTotalVotes2026
+                             const total = dynamicTotalVotes2026; 
                              const percentage = ((context.parsed.y / total) * 100).toFixed(1);
                              label += ` (${percentage}%)`;
                         }
@@ -356,39 +521,187 @@
             backgroundColor: 'transparent' 
         };
         
-        // --- Fonction du Modèle d'Érosion (Section 4) ---
+        // --- Fonction de Calcul des Votes Totaux (Nouveau) ---
+
+        function calculateTotalVotes2026() {
+            const participationRateInput = document.getElementById('participation-slider');
+            const participationRate = parseInt(participationRateInput.value, 10) / 100;
+            
+            const totalVoters = TOTAL_REGISTERED_VOTERS * participationRate;
+            const abstention = TOTAL_REGISTERED_VOTERS - totalVoters;
+            const expressedVotes = totalVoters * (1 - BLANK_NULL_RATE);
+            
+            // Mise à jour de la variable globale
+            // Note: Nous utilisons le total ajusté par la participation comme base pour V_i,t
+            dynamicTotalVotes2026 = Math.round(expressedVotes);
+
+            // Mise à jour de l'interface utilisateur
+            document.getElementById('participation-value').textContent = (participationRate * 100).toFixed(0) + '%';
+            document.getElementById('total-voters-2026').textContent = Math.round(totalVoters).toLocaleString('fr-FR');
+            document.getElementById('abstention-2026').textContent = Math.round(abstention).toLocaleString('fr-FR');
+            
+            return dynamicTotalVotes2026;
+        }
+
+        // --- Fonctions CMP (NOUVEAU) ---
+
+        /**
+         * Calcule la Courbe de Momentum Politique (CMP).
+         * Utilise les valeurs des 3 sliders (participation, érosion, score projeté).
+         */
+        function calculateCMP() {
+            // Récupérer les valeurs des sliders (normalisées sur 0-100)
+            const participation = parseFloat(document.getElementById('participation-slider').value);
+            const erosion = parseFloat(document.getElementById('erosion-slider').value);
+            const score = parseFloat(document.getElementById('score-projeté-slider').value); // Le score est déjà un % 
+            
+            // Érosion (epsilon) est une résistance, on utilise donc (100 - erosion) pour la force dans le CMP.
+            // CMP (Momentum) est plus fort si l'érosion (mémoire) est faible, et si l'attraction (score) est forte.
+            const nonErosion = 100 - erosion;
+
+            // CMP = (Participation / 100) * 0.4 + (1 - Érosion / 100) * 0.4 + (Score / 100) * 0.2
+            // Et multiplier par 100 à la fin, OU, utiliser les valeurs 0-100 directement:
+            
+            const cmp = (participation * WEIGHT_P) + 
+                        (nonErosion * WEIGHT_E) + 
+                        (score * WEIGHT_S);
+
+            // Arrondir à une décimale
+            return parseFloat(cmp.toFixed(1));
+        }
+
+        /**
+         * Met à jour la jauge Speedometer et les valeurs d'affichage.
+         * @param {number} cmp - La valeur CMP (0-100).
+         */
+        function updateGauge(cmp) {
+            const cmpValueDisplay = document.getElementById('cmpValue');
+            const cmpStatusDisplay = document.getElementById('cmpStatus');
+            const gaugeNeedleContainer = document.getElementById('gaugeNeedleContainer');
+
+            // 1. Mise à jour de l'affichage de la valeur
+            cmpValueDisplay.textContent = cmp.toFixed(1);
+
+            // 2. Définition du Statut et de la Couleur (basé sur 0-30 rouge, 30-60 orange, 60-100 vert)
+            let statusText = '';
+            let statusColor = '';
+            
+            if (cmp < 30) {
+                statusText = 'Terrain hostile (Risque Élevé)';
+                statusColor = '#ef4444'; // Rouge
+            } else if (cmp < 60) {
+                statusText = 'Zone de turbulence (Instabilité)';
+                statusColor = '#f97316'; // Orange
+            } else {
+                statusText = 'Momentum positif (Avantage Stratégique)';
+                statusColor = '#10b981'; // Vert
+            }
+
+            cmpStatusDisplay.textContent = statusText;
+            cmpStatusDisplay.style.color = statusColor;
+            cmpValueDisplay.style.color = statusColor;
+
+            // 3. Animation de l'aiguille de la jauge
+            // L'angle va de -90 degrés (0 CMP) à +90 degrés (100 CMP).
+            const angle = (cmp / 100) * 180 - 90;
+            gaugeNeedleContainer.style.transform = `rotate(${angle}deg)`;
+        }
+
+
+        // --- Fonction du Modèle d'Érosion (Section 3 - Formule Complexe) ---
 
         function calculate2026Projection(epsilon) {
+            
+            // Facteur de Participation (pi) - Ajusté par le total des voix exprimées
+            const expressedVotes = dynamicTotalVotes2026;
+            
             const results = {};
             const keys = Object.keys(V_CURRENT_BASE);
-            let currentTotal = 0;
+            let totalProjectedVotes = 0;
 
             for (const key of keys) {
-                // V_i, 2026 = (1 - epsilon) * V_i, 2014^Base + epsilon * V_i, Actuel^Projeté
-                const projectedVotes = (1 - epsilon) * V_2014_BASE[key] + epsilon * V_CURRENT_BASE[key];
-                results[key] = Math.round(projectedVotes);
-                currentTotal += results[key];
+                
+                // 1. Calcul du Facteur d'Attraction Normalisé (A_i / Sum A_j)
+                // Le poids d'attraction est simplement le poids actuel (V_i, t^proj) divisé par le total de cette base.
+                const attractionFactor = V_CURRENT_BASE[key] / TOTAL_V_CURRENT_BASE;
+                
+                // 2. Application de la formule :
+                // V_i, t = (1 - epsilon) * V_i, t-1 + epsilon * (AttractionFactor * expressedVotes)
+                
+                // Terme Fidélité Historique (V_i, t-1)
+                const fidelityTerm = V_2014_BASE[key];
+                
+                // Terme Attraction (V_i, t^proj) - ajusté au total des voix dynamiques
+                const attractionTerm = attractionFactor * expressedVotes; 
+                
+                // Combinaison des termes selon epsilon (Équation finale)
+                // Note : La participation est intégrée dans l'ajustement du terme attraction, 
+                // ce qui est équivalent à multiplier toute la parenthèse par pi.
+                const projectedVotes = (1 - epsilon) * fidelityTerm + epsilon * attractionTerm;
+                
+                results[key] = projectedVotes; 
+                totalProjectedVotes += results[key];
             }
 
-            // Normaliser pour que le total reste constant (ou proche de l'objectif)
-            const scalingFactor = TOTAL_VOTES_2026_PROJ / currentTotal;
+            // Normalisation finale (Réajustement pour s'assurer que Sum V_i, t = expressedVotes)
+            // C'est nécessaire car l'ajustement de pi n'est pas linéaire sur l'ensemble.
+            const scalingFactor = expressedVotes / totalProjectedVotes;
+            const finalResults = {};
+            
             for (const key of keys) {
-                results[key] = Math.round(results[key] * scalingFactor);
+                finalResults[key] = Math.round(results[key] * scalingFactor);
             }
 
-            return results;
+            return finalResults;
         }
 
         // --- Fonctions de Mise à Jour de l'Interface ---
 
-        function updateProjectionChartAndDetails(epsilon) {
-            const results = calculate2026Projection(epsilon);
+        function updateSimulation() {
+            // 1. Mise à jour de l'affichage du Score Projeté
+            const scoreSlider = document.getElementById('score-projeté-slider');
+            document.getElementById('score-projeté-value').textContent = scoreSlider.value + '%';
+            
+            // Mise à jour de V_CURRENT_BASE[JMV Consolidé] basée sur le slider "Score Projeté"
+            // JMV Consolidé représente l'Opposition. Nous normalisons le slider 10-50% sur la part du pool d'attraction.
+            // Pour simplifier le modèle, nous utilisons le slider pour moduler l'attraction de JMV et Bedier
+            const scorePercentage = parseInt(scoreSlider.value) / 100;
+            const remainingBase = TOTAL_V_CURRENT_BASE - V_CURRENT_BASE['Eric Fruteau'] - V_CURRENT_BASE['Pool Droit Indépendant (Laurent)'];
+            
+            // La somme des poids Bedier et JMV doit rester autour de 21000
+            V_CURRENT_BASE['JMV Consolidé'] = Math.round(remainingBase * scorePercentage);
+            V_CURRENT_BASE['Joé Bedier'] = Math.round(remainingBase * (1 - scorePercentage));
+
+
+            // 2. Calculer le Momentum (CMP)
+            const cmp = calculateCMP();
+            updateGauge(cmp);
+
+            // 3. Calculer le nouveau total de votes exprimés basé sur la participation
+            const newTotalVotes = calculateTotalVotes2026();
+            
+            // 4. Lire le paramètre d'érosion
+            const erosionSlider = document.getElementById('erosion-slider');
+            const epsilon = parseInt(erosionSlider.value, 10) / 100;
+            document.getElementById('erosion-value').textContent = epsilon.toFixed(2);
+            
+            // 5. Calculer la projection du 1er tour
+            const firstTourResults = calculate2026Projection(epsilon);
+
+            // 6. Mettre à jour les graphiques et détails du 1er tour
+            updateProjectionChartAndDetails(epsilon, firstTourResults);
+            
+            // 7. Déclencher le calcul du 2nd tour (qui utilise les résultats du 1er tour)
+            updateSecondTourProjection(firstTourResults);
+        }
+
+        function updateProjectionChartAndDetails(epsilon, results) {
             const dataArray = Object.values(results);
-            const keys = Object.keys(results);
             
             // Mise à jour du graphique 1er Tour
             if (projection1stTourChart) {
                 projection1stTourChart.data.datasets[0].data = dataArray;
+                projection1stTourChart.options.scales.y.max = Math.ceil(Math.max(...dataArray) / 1000) * 1000 + 1000;
                 projection1stTourChart.update();
             }
 
@@ -396,23 +709,25 @@
             const detailsPanel = document.getElementById('projection-details-1st');
             detailsPanel.innerHTML = '';
             
-            const colors = ['#3b82f6', '#06b6d4', '#f59e0b', '#dc2626'];
+            const displayKeys = Object.keys(results).slice(0, 4); 
+            const colors = ['#3b82f6', '#06b6d4', '#f59e0b', '#f97316']; 
             let htmlContent = '';
             
-            keys.forEach((key, index) => {
+            displayKeys.forEach((key, index) => {
                 const votes = results[key];
-                const percentage = ((votes / TOTAL_VOTES_2026_PROJ) * 100).toFixed(1);
+                // Le pourcentage est basé sur le total dynamique des votes exprimés
+                const percentage = ((votes / dynamicTotalVotes2026) * 100).toFixed(1);
                 
                 let colorClass = '';
                 let hexColor = colors[index];
-                if (key.includes('JMV')) colorClass = 'blue';
+                if (key.includes('JMV Consolidé')) colorClass = 'blue';
                 else if (key.includes('Bedier')) colorClass = 'cyan';
-                else if (key.includes('Fruteau')) colorClass = 'amber'; // Utiliser amber pour Fruteau
-                else if (key.includes('Virapoullé/RN')) colorClass = 'red'; // Utiliser red pour RN
+                else if (key.includes('Fruteau')) colorClass = 'amber';
+                else if (key.includes('Laurent')) colorClass = 'orange';
 
                 htmlContent += `
                     <div class="bg-${colorClass}-900/50 border-l-4 border-${colorClass}-500 p-4">
-                        <h4 class="font-bold text-${colorClass}-300">${key.replace('/RN', '')} : ${percentage}%</h4>
+                        <h4 class="font-bold text-${colorClass}-300">${key.replace('Pool Droit Indépendant (Laurent)', 'Pool Laurent')} : ${percentage}%</h4>
                         <p class="text-sm text-${colorClass}-200">${votes.toLocaleString('fr-FR')} voix projetées</p>
                         <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
                             <div class="h-2.5 rounded-full" style="width: ${percentage}%; background-color: ${hexColor}"></div>
@@ -422,48 +737,49 @@
             });
             
             detailsPanel.innerHTML = htmlContent;
-
-            // Mise à jour dynamique de la projection du 2nd tour
-            updateSecondTourProjection(results);
         }
         
         function updateSecondTourProjection(firstTourResults) {
             
-            // 1. Identifier les candidats au second tour (Top 2)
-            const sortedCandidates = Object.entries(firstTourResults)
-                .sort(([, a], [, b]) => b - a);
-
-            // Hypothèse : Un duel entre le JMV Consolidé et Joé Bedier
             const c1 = 'JMV Consolidé';
             const v1_1st = firstTourResults[c1];
             const c2 = 'Joé Bedier';
             const v2_1st = firstTourResults[c2];
 
-            // Identifier les éliminés
-            const eliminatedCandidates = sortedCandidates.filter(([name]) => name !== c1 && name !== c2);
+            const eliminatedCandidates = Object.entries(firstTourResults).filter(([name]) => name !== c1 && name !== c2);
             
-            let v1_2nd = v1_1st; // Base de votes pour JMV
-            let v2_2nd = v2_1st; // Base de votes pour Bedier
+            let v1_2nd = v1_1st; 
+            let v2_2nd = v2_1st; 
             let totalReportedVotes = 0;
 
-            // 2. Calculer les reports
+            // Facteur de correction (simple) pour la participation au 2nd tour
+            // Simplification : le total des voix du 1er tour est notre base pour les reports.
+
             eliminatedCandidates.forEach(([eliminatedName, eliminatedVotes]) => {
-                totalReportedVotes += eliminatedVotes;
                 
-                // Appliquer les taux de report (si le candidat éliminé est dans le modèle)
-                if (REPORT_RATES[eliminatedName]) {
-                    const rates = REPORT_RATES[eliminatedName];
+                // Cas Spécifique : Pool Droit Indépendant (Laurent)
+                if (eliminatedName === 'Pool Droit Indépendant (Laurent)') {
+                    const reportJMV = laurentSupportRate;
+                    const reportBedier = 0.05;
+
+                    v1_2nd += Math.round(eliminatedVotes * reportJMV);
+                    v2_2nd += Math.round(eliminatedVotes * reportBedier);
                     
-                    // Report vers JMV
+                    totalReportedVotes += Math.round(eliminatedVotes * (reportJMV + reportBedier));
+
+                } else if (REPORT_RATES_BASE[eliminatedName]) {
+                    // Cas Général (Eric Fruteau)
+                    const rates = REPORT_RATES_BASE[eliminatedName];
+                    
                     v1_2nd += Math.round(eliminatedVotes * (rates[c1] || 0));
-                    
-                    // Report vers Bedier
                     v2_2nd += Math.round(eliminatedVotes * (rates[c2] || 0));
+                    
+                    totalReportedVotes += Math.round(eliminatedVotes * ((rates[c1] || 0) + (rates[c2] || 0)));
                 }
-                // Si l'éliminé n'est pas dans le modèle, ses voix sont considérées comme abstention/divers et ne sont pas reportées.
             });
             
             const total2ndTourVotes = v1_2nd + v2_2nd;
+            
             const winner = v1_2nd > v2_2nd ? c1 : c2;
             const loser = v1_2nd > v2_2nd ? c2 : c1;
 
@@ -475,18 +791,10 @@
 
             // 3. Mise à jour du graphique 2nd Tour
             if (projection2ndTourChart) {
-                // Mettre à jour les données de projection 2026 (stack 1)
-                const data2026 = [0, 0, winner === c2 ? v_winner : v_loser, winner === c1 ? v_winner : v_loser];
+                const data2026 = [0, 0, v2_2nd, v1_2nd];
+                
                 projection2ndTourChart.data.datasets[1].data = data2026;
-                
-                // Mettre à jour les labels si nécessaire (bien que JMV/Bedier soit fixe ici)
-                projection2ndTourChart.data.labels = [
-                    wrapLabel(`${c2} (2020)`), 
-                    wrapLabel(`${c1} (2020)`), 
-                    wrapLabel(`${c2} (2026 Proj.)`), 
-                    wrapLabel(`${c1} (2026 Proj.)`)
-                ];
-                
+                projection2ndTourChart.options.scales.y.max = Math.ceil(Math.max(v1_2nd, v2_2nd) / 1000) * 1000 + 1000;
                 projection2ndTourChart.update();
             }
 
@@ -500,7 +808,7 @@
                 <div class="bg-gray-900 border-b-4 border-amber-500 p-4 text-center">
                     <h4 class="font-bold text-amber-300">Total Votants (2nd Tour)</h4>
                     <div class="text-3xl font-extrabold text-white mt-1">${total2ndTourVotes.toLocaleString('fr-FR')}</div>
-                    <p class="text-xs text-gray-400">Total des votes du 1er tour reportés : ${totalReportedVotes.toLocaleString('fr-FR')}</p>
+                    <p class="text-xs text-gray-400">Total des reports pris en compte : ${totalReportedVotes.toLocaleString('fr-FR')}</p>
                 </div>
                 
                 <div class="bg-${colorClassWinner}-900/50 border-l-4 border-${colorClassWinner}-700 p-4">
@@ -517,11 +825,10 @@
             `;
         }
 
-        // --- Initialisation des Charts ---
+        // --- Initialisation des Charts et Listeners ---
         
         window.onload = function() {
-            // Initialisation des charts existants (sections 1, 3)
-
+            // Initialisation des 4 premiers graphiques (démographie, mobilisation, pool, validation)
             // 1. Demographics Chart
             const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
             new Chart(ctxDemo, {
@@ -589,7 +896,7 @@
                 }
             });
             
-            // 6. Projection 2nd Tour 2026 (Initialisation dynamique)
+            // 5. Projection 2nd Tour 2026 (Initialisation dynamique)
             const ctxProj2nd = document.getElementById('projection2ndTourChart').getContext('2d');
             const proj2ndLabels = ['Bedier (2020)', 'Opp. (2020)', 'Bedier (2026 Proj.)', 'Opp. (2026 Proj.)'].map(l => wrapLabel(l));
             projection2ndTourChart = new Chart(ctxProj2nd, {
@@ -616,9 +923,10 @@
             // --- Initialisation de la Projection 1er Tour (Section 4) ---
 
             const ctxProj1st = document.getElementById('projection1stTourChart').getContext('2d');
-            const proj1stLabels = ['JMV Consolidé', 'Joé Bedier', 'Eric Fruteau', 'L. Virapoullé'].map(l => wrapLabel(l)); // L. Virapoullé est le seul label ici
+            const proj1stLabels = Object.keys(V_CURRENT_BASE).map(l => wrapLabel(l.replace('Pool Droit Indépendant (Laurent)', 'Pool Laurent')));
             
-            // Initialisation avec epsilon=0.5
+            // Calculer les résultats initiaux
+            calculateTotalVotes2026(); 
             const initialResults = calculate2026Projection(0.5);
 
             projection1stTourChart = new Chart(ctxProj1st, {
@@ -628,7 +936,7 @@
                     datasets: [{ 
                         label: 'Voix (Projection 1er Tour 2026)', 
                         data: Object.values(initialResults), 
-                        backgroundColor: ['#3b82f6', '#06b6d4', '#f59e0b', '#dc2626'], 
+                        backgroundColor: ['#3b82f6', '#06b6d4', '#f59e0b', '#f97316'], // Orange pour Pool Laurent
                         borderRadius: 4 
                     }]
                 },
@@ -638,26 +946,42 @@
                 }
             });
             
-            // Mise à jour de l'interface au chargement initial (important pour le 2nd tour)
-            updateProjectionChartAndDetails(0.5); 
+            // Mise à jour de l'interface au chargement initial (important pour les détails et le 2nd tour)
+            updateSimulation(); 
 
 
-            // --- Gestion du Slider d'Érosion ---
+            // --- Gestion des Sliders (Section 4 et 6) ---
 
-            const slider = document.getElementById('erosion-slider');
-            const valueSpan = document.getElementById('erosion-value');
+            const participationSlider = document.getElementById('participation-slider');
+            const erosionSlider = document.getElementById('erosion-slider');
+            const scoreProjetéSlider = document.getElementById('score-projeté-slider');
 
-            slider.addEventListener('input', (event) => {
-                // Convertir la valeur du slider (0 à 100) en epsilon (0.00 à 1.00)
-                const sliderValue = parseInt(event.target.value, 10);
-                const epsilon = sliderValue / 100;
+            // Événements d'écoute pour les sliders du 1er tour et du CMP
+            participationSlider.addEventListener('input', updateSimulation);
+            erosionSlider.addEventListener('input', updateSimulation);
+            scoreProjetéSlider.addEventListener('input', updateSimulation);
+            
+            const arbitrageSlider = document.getElementById('laurent-arbitrage-slider');
+            const arbitrageValueSpan = document.getElementById('laurent-arbitrage-value');
+            
+            // Initialisation de la variable globale au chargement
+            laurentSupportRate = parseInt(arbitrageSlider.value, 10) / 100;
+
+            arbitrageSlider.addEventListener('input', (event) => {
+                // Mettre à jour la variable globale du support de Laurent
+                laurentSupportRate = parseInt(event.target.value, 10) / 100;
+                arbitrageValueSpan.textContent = `${(laurentSupportRate * 100).toFixed(0)}%`;
                 
-                // Mettre à jour l'affichage de la valeur
-                valueSpan.textContent = epsilon.toFixed(2);
+                // Lire les résultats actuels du 1er tour (sans recalculer l'érosion)
+                const currentEpsilon = parseInt(erosionSlider.value, 10) / 100;
+                const firstTourResults = calculate2026Projection(currentEpsilon);
                 
-                // Mettre à jour le graphique et les détails
-                updateProjectionChartAndDetails(epsilon);
+                // Recalculer le 2nd tour immédiatement avec le nouveau taux de report
+                updateSecondTourProjection(firstTourResults);
             });
+            
+            // Mettre à jour l'affichage de la valeur initiale du slider de Laurent
+            arbitrageValueSpan.textContent = `${(laurentSupportRate * 100).toFixed(0)}%`;
         };
     </script>
 </body>
